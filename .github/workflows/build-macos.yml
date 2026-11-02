@@ -37,18 +37,32 @@ jobs:
             go build -trimpath \
             -o dist/gocron-node ./cmd/node
 
-      - name: Verify binaries
+      - name: Verify macOS ARM64 binaries
+        shell: bash
         run: |
+          set -euo pipefail
+
           file dist/gocron dist/gocron-node
-          ./dist/gocron --help
-          ./dist/gocron-node --help
+
+          file dist/gocron | grep -q 'Mach-O 64-bit arm64'
+          file dist/gocron-node | grep -q 'Mach-O 64-bit arm64'
+
+          test -s dist/gocron
+          test -s dist/gocron-node
+
+          echo "macOS ARM64 binaries verified successfully"
 
       - name: Package
         shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p package/bin
           cp dist/gocron dist/gocron-node package/bin/
-          cp -R conf package/ 2>/dev/null || true
+
+          if [ -d conf ]; then
+            cp -R conf package/
+          fi
 
           tar -czf New-Gocron-macos-arm64.tar.gz \
             -C package .
